@@ -49,3 +49,20 @@ Running confidence based pruning (CBP)
 ```
 
 
+
+## Reference
+
+[Jinnai, Y., & Ariu, K. (2024). Hyperparameter-Free Approach for Faster Minimum Bayes Risk Decoding. arXiv preprint arXiv:2401.02749.](https://arxiv.org/abs/2401.02749)
+
+Bibtex:
+```
+@article{jinnai2024hyperparameterfree,
+      title={Hyperparameter-Free Approach for Faster Minimum Bayes Risk Decoding}, 
+      author={Yuu Jinnai and Kaito Ariu},
+      year={2024},
+      journal={arXiv preprint arXiv:2401.02749}
+}
+```
+
+## Contact
+For any questions, feel free to raise an issue or contact me at jinnai_yu@cyberagent.co.jp.
