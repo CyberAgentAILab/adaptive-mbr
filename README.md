@@ -16,7 +16,7 @@ pip install requirements.txt
 
 The code runs in two steps.
 1. `sample.sh` samples candidates.
-2. `run_mbr.sh ` computes the MBR candidate from the candidates sampled.
+2. `run_mbr.sh` computes the MBR candidate from the candidates sampled.
 
 ### Sampling candidates
 
@@ -32,23 +32,28 @@ The code runs in two steps.
 
 ### Example: WMT'21 En-De
 
+1. Use [sacrebleu](https://github.com/mjpost/sacrebleu) to prepare the benchmark dataset.
+```
+sacrebleu -t wmt21 -l en-de --echo src > ./dataset/wmt21/wmt21.en-de.en
+sacrebleu -t wmt21 -l en-de --echo ref > ./dataset/wmt21/wmt21.en-de.de
+```
+
+2. Sample candidates
 ```
 ./experiments/sample.sh -d wmt21.en-de
 ```
 
-Running adaptive MBR
+3. Run adaptive MBR
 
 ```
 ./experiments/run_mbr.sh -d wmt21.en-de -a approx
 ```
 
-Running confidence based pruning (CBP)
+4. Run confidence based pruning (CBP)
 
 ```
 ./experiments/run_mbr.sh -d wmt21.en-de -a pruning
 ```
-
-
 
 ## Reference
 
