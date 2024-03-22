@@ -1,21 +1,35 @@
 import numpy as np
 import pandas as pd
-
 from evaluate import load
 
 
-def pull_arm(n_samples, arms, num_pulls_per_arm, dist_func, cache_matrix=None, has_evaluated=None, src_input=None):
+def pull_arm(
+    n_samples,
+    arms,
+    num_pulls_per_arm,
+    dist_func,
+    cache_matrix=None,
+    has_evaluated=None,
+    src_input=None,
+):
     # TODO: Can optimize assuming num_pulls_per_arm == 1
 
     # sample_n = len(samples)
 
     # TODO: What happen if we sample with weight propotional to the Pmodel here?
     Tmean = np.zeros(arms.shape[0], dtype=float)
-    
-    remaining_references = [sample for sample in range(n_samples) if has_evaluated[sample] == 0]
+
+    remaining_references = [
+        sample for sample in range(n_samples) if has_evaluated[sample] == 0
+    ]
     # print('remaining_references: {}'.format(remaining_references))
     if len(remaining_references) > 0:
-        tmp_pos = np.array(np.random.choice(remaining_references, size=num_pulls_per_arm, replace=False), dtype='int')
+        tmp_pos = np.array(
+            np.random.choice(
+                remaining_references, size=num_pulls_per_arm, replace=False
+            ),
+            dtype="int",
+        )
         # print('tmp_pos: {}'.format(tmp_pos))
 
         for i, a in enumerate(arms):
@@ -47,14 +61,19 @@ def pull_arm(n_samples, arms, num_pulls_per_arm, dist_func, cache_matrix=None, h
 
     return Tmean, cache_matrix, has_evaluated
 
-def compute_ambr(hyp=None, score_function=None, matrix=None, weights=None, src=None, T_budget=None):
-    # TODO: Currently the algorithm does not use the fact that 
+
+def compute_ambr(
+    hyp=None, score_function=None, matrix=None, weights=None, src=None, T_budget=None
+):
+    # TODO: Currently the algorithm does not use the fact that
     #       the score_function is symmetric. This reduces the computation a bit (up to a factor of 2).
-    
+
     if matrix is None:
         # TODO: Make it batched for speed.
         assert False
-        distance_function = lambda a, b, src_input: score_function([hyp[a]], [hyp[b]], src_input)
+        distance_function = lambda a, b, src_input: score_function(
+            [hyp[a]], [hyp[b]], src_input
+        )
     else:
         # Because the matrix is a similarity matrix, we need to convert it to a distance matrix.
         distance_function = lambda a, b, src_input: [1.0 - matrix[a, b]]
@@ -76,8 +95,11 @@ def compute_ambr(hyp=None, score_function=None, matrix=None, weights=None, src=N
     # 0: not evaluated, 1: evaluated. This is to keep track of the evaluated references to make the sampling without replacement.
     has_evaluated = np.zeros(n, dtype=int)
 
-
-    while (len(S) > 1) and ((~np.isnan(cache_matrix)).sum() < T_budget) and not (has_evaluated.all()):
+    while (
+        (len(S) > 1)
+        and ((~np.isnan(cache_matrix)).sum() < T_budget)
+        and not (has_evaluated.all())
+    ):
         tr = int(min(max(1, np.floor(T_budget / S.shape[0] / np.ceil(np.log(n)))), n))
         # print("Round {}: #hypothesis={}, #pulls={}".format(round, S.shape[0], tr))
 
@@ -88,14 +110,15 @@ def compute_ambr(hyp=None, score_function=None, matrix=None, weights=None, src=N
                 # If we are about to exceed the budget, we stop.
                 # The original algorithm ignores a few pulls of exceeds but in our implementation we take it strict.
                 break
-            
 
-            Tmean, updated_cache_matrix, updated_has_evaluated = pull_arm(n, S, 1, distance_function, cache_matrix, has_evaluated, src)
+            Tmean, updated_cache_matrix, updated_has_evaluated = pull_arm(
+                n, S, 1, distance_function, cache_matrix, has_evaluated, src
+            )
             cache_matrix = updated_cache_matrix
             has_evaluated = updated_has_evaluated
 
             # Take a moving average over the previous mean (estimate[arms]) and current mean (Tmean)
-            estimate[S] = (estimate[S] * T[S] + Tmean)/(T[S] + 1.0)
+            estimate[S] = (estimate[S] * T[S] + Tmean) / (T[S] + 1.0)
             # estimate[arms] = Tmean # theoretically don't use past
             # if 1 == n:
             #     estimate[S] = Tmean
@@ -106,33 +129,34 @@ def compute_ambr(hyp=None, score_function=None, matrix=None, weights=None, src=N
             summary.append(S[np.argmin(lst)])
             summary_pulls.append(T.sum())
             nqueries.append((~np.isnan(cache_matrix)).sum())
-        
+
         # Recompute lst so that it is independent to the recording procedure above.
         lst = estimate[S]
 
         med = np.median(lst)
-        locs = np.where(lst<=med)[0]
+        locs = np.where(lst <= med)[0]
 
         # incum_bests.append(estimate.argmin())
 
-        if tr == n: # calculated exactly
+        if tr == n:  # calculated exactly
             S = [S[np.argmin(lst)]]
             break
         S = S[locs]
 
-        if (len(S)==1) or (len(locs) == len(lst)):
+        if (len(S) == 1) or (len(locs) == len(lst)):
             break
         round += 1
 
     assert T_budget >= nqueries[-1]
-          
+
     # if T_budget < nqueries[-1]:
     #     print('Over budget!')
     #     print('T_budget = {}'.format(T_budget))
     #     print('nqueries = {}'.format(nqueries[-1]))
     #     print('summary_pulls = {}'.format(summary_pulls[-1]))
 
-    df = pd.DataFrame({
+    df = pd.DataFrame(
+        {
             # "iters": list(range(len(summary))),
             "hyp_index": summary,
             "nevals": summary_pulls,
@@ -140,25 +164,36 @@ def compute_ambr(hyp=None, score_function=None, matrix=None, weights=None, src=N
         }
     )
 
-    best_solution = df.iloc[-1]['hyp_index']
+    best_solution = df.iloc[-1]["hyp_index"]
     return best_solution, df
 
     # return S[0], df
 
 
-def compute_pmbr(hyp=None, score_function=None, matrix=None, weights=None, src=None, T_budget=None,
-                    r_schedule=None, pruning_alpha=0.9, n_bootstraps=500):
-   
+def compute_pmbr(
+    hyp=None,
+    score_function=None,
+    matrix=None,
+    weights=None,
+    src=None,
+    T_budget=None,
+    r_schedule=None,
+    pruning_alpha=0.9,
+    n_bootstraps=500,
+):
+
     if matrix is None:
         # TODO: Make it batched for speed.
         assert False
-        distance_function = lambda a, b, src_input: score_function([hyp[a]], [hyp[b]], src_input)
+        distance_function = lambda a, b, src_input: score_function(
+            [hyp[a]], [hyp[b]], src_input
+        )
     else:
         # Because the matrix is a similarity matrix, we need to convert it to a distance matrix.
         distance_function = lambda a, b, src_input: [1.0 - matrix[a, b]]
 
     if r_schedule is None:
-        r_schedule = [4 * (2 ** i) for i in range(10)]
+        r_schedule = [4 * (2**i) for i in range(10)]
     # print("r_schedule=", r_schedule)
 
     n = matrix.shape[0]
@@ -173,10 +208,10 @@ def compute_pmbr(hyp=None, score_function=None, matrix=None, weights=None, src=N
     iteration = 0
 
     reference_pool = []
-    
+
     r_i = 0
     used_budget = 0
-    
+
     # print("T_budget=", T_budget)
 
     while (len(S) > 1) and (used_budget < T_budget):
@@ -201,14 +236,18 @@ def compute_pmbr(hyp=None, score_function=None, matrix=None, weights=None, src=N
         # print("r_i=", r_i)
         if r_i > n:
             break
-        
+
         while len(reference_pool) < r_i:
-            remaining_references = [sample for sample in range(n) if sample not in reference_pool]
-            tmp_pos = np.random.choice(remaining_references, size=1, replace=False).item()
+            remaining_references = [
+                sample for sample in range(n) if sample not in reference_pool
+            ]
+            tmp_pos = np.random.choice(
+                remaining_references, size=1, replace=False
+            ).item()
             reference_pool.append(tmp_pos)
-            
+
         # print("reference_pool=", reference_pool)
-        
+
         ########################
         # Pruning
         ########################
@@ -218,14 +257,14 @@ def compute_pmbr(hyp=None, score_function=None, matrix=None, weights=None, src=N
 
         # print("ybarbar=", ybarbar)
         # print("ybarbar_score=", ybarbar_score)
-        
+
         R_is = []
         y_barbar_bs_score = []
         for i in range(n_bootstraps):
             R_i = np.random.choice(remaining_references, size=r_i, replace=True)
             R_is.append(R_i)
             y_barbar_bs_score.append(matrix[ybarbar, R_i].sum())
-        
+
         S_next = []
         for y in S:
             wins = 0
@@ -238,44 +277,44 @@ def compute_pmbr(hyp=None, score_function=None, matrix=None, weights=None, src=N
             # print("y: {}, win_ratio: {}".format(y, win_ratio))
             if win_ratio > 1.0 - pruning_alpha:
                 S_next.append(y)
-        
-        # print('S_next=', S_next)        
-        
+
+        # print('S_next=', S_next)
+
         S = S_next
         iteration += 1
-        
+
     best_solution = matrix[:, reference_pool].sum(axis=1).argmax()
 
     return best_solution
-    
 
-# def compute_c2f_ambr(hyp=None, compute_similatiy=None, matrix=None, weights=None, src=None, T_budget=None, 
+
+# def compute_c2f_ambr(hyp=None, compute_similatiy=None, matrix=None, weights=None, src=None, T_budget=None,
 #                     compute_coarse=None, coarse_matrix=None):
 #     assert hyp is not None
 #     assert (compute_coarse is not None) or (coarse_matrix is not None)
 
 #     n_samples = matrix.shape[0]
-    
+
 #     # Compute the number of samples to use for coarse to fine.
 #     nk = n_samples
 #     s_budget = nk * (nk - 1) / 2 + nk * (n_samples - nk)
 #     while s_budget > T_budget:
 #         nk -= 1
 #         s_budget = nk * (nk - 1) / 2 + nk * (n_samples - nk)
-        
+
 #     # Compute coarse measure and pick the best k as a candidate.
 #     if coarse_matrix is None:
 #         coarse_matrix = compute_score_matrix(hyp, compute_coarse, [src] * len(hyp))
 #     coarse_bests = compute_kmbr(matrix=coarse_matrix, k=nk)
-        
+
 #     if matrix is None:
 #         matrix = compute_score_matrix(hyp, compute_similarity, [src] * len(hyp))
-    
+
 #     # Pick the best from the coarse set.
 #     # The candidates are limited but the references are set the same.
 #     compressed_matrix = matrix[coarse_bests]
-    
-    
+
+
 #     best_in_orig_ind = coarse_bests[best_in_comp_ind]
 
 
@@ -290,21 +329,25 @@ if __name__ == "__main__":
     similarity = load("bertscore")
 
     def compute_similarity(hyp, ref, src):
-        return similarity.compute(predictions=hyp, references=ref, lang='en')['f1']
-    
+        return similarity.compute(predictions=hyp, references=ref, lang="en")["f1"]
+
     def compute_distance(hyp, ref, src):
         return [1.0 - sim for sim in compute_similarity(hyp, ref, src)]
-    
-    df = pd.read_csv("./samples/wmt19.de-en/wmt19-de-en/0000_eps-0.02_topk-00_topp-1.00")
-    samples = df['text']
-    samples = samples[:n] # Limit the number of sequences for debugging
+
+    df = pd.read_csv(
+        "./samples/wmt19.de-en/wmt19-de-en/0000_eps-0.02_topk-00_topp-1.00"
+    )
+    samples = df["text"]
+    samples = samples[:n]  # Limit the number of sequences for debugging
     # samples = [
     #     "Hello, my name is David.",
     #     "Hello, I am David.",
     #     "Hello, I'm David,",
     #     "This is it."
     # ]
-    matrix = np.loadtxt("./matrix/wmt19.de-en/wmt19-de-en/0000_eps-0.02_topk-00_topp-1.00_bertscore_127")
+    matrix = np.loadtxt(
+        "./matrix/wmt19.de-en/wmt19-de-en/0000_eps-0.02_topk-00_topp-1.00_bertscore_127"
+    )
     matrix = matrix[:n, :n]
 
     print("Optimal=", matrix.sum(axis=1).argmax())
@@ -320,23 +363,29 @@ if __name__ == "__main__":
     # em_scores = em.sum(axis=1)
     # exact_arm = em_scores.argmax()
     # exact_score = em_scores.max()
-    
+
     # approx_arm = df['hyp_index'].iloc[-1]
     # approx_score = em_scores[df['hyp_index'].iloc[-1]]
 
     # print("Exact:       Best arm = {}, score = {}, with {} total evaluations".format(exact_arm, exact_score, int(n * (n-1)/2)))
     # print("Approximate: Best arm = {}, score = {}, with {} total evaluations".format(approx_arm, approx_score, df['nevals'].iloc[-1]))
 
-    print('##################')
-    print('##################')
+    print("##################")
+    print("##################")
     T_budget = 2000
-    pruning_result = compute_pmbr(samples, compute_distance, matrix=matrix, T_budget=T_budget)
+    pruning_result = compute_pmbr(
+        samples, compute_distance, matrix=matrix, T_budget=T_budget
+    )
     print("T_budget = {}, Pruning result: {}".format(T_budget, pruning_result))
     T_budget = 1000
-    pruning_result = compute_pmbr(samples, compute_distance, matrix=matrix, T_budget=T_budget)
+    pruning_result = compute_pmbr(
+        samples, compute_distance, matrix=matrix, T_budget=T_budget
+    )
     print("T_budget = {}, Pruning result: {}".format(T_budget, pruning_result))
     T_budget = 500
-    pruning_result = compute_pmbr(samples, compute_distance, matrix=matrix, T_budget=T_budget)
+    pruning_result = compute_pmbr(
+        samples, compute_distance, matrix=matrix, T_budget=T_budget
+    )
     print("T_budget = {}, Pruning result: {}".format(T_budget, pruning_result))
 
     # dist_func = np.array([
