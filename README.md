@@ -7,9 +7,9 @@ The code is provided mostly as is with little effort on refactoring.
 ## Installation
 
 ```
-git clone git@github.com/jinnaiyuu/adaptive-mbr
+git clone git@github.com:CyberAgentAILab/adaptive-mbr
 cd adaptive-mbr
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Usage
@@ -21,7 +21,7 @@ The code runs in two steps.
 ### Sampling candidates
 
 ```
-./experiments/sample.sh -d [DATASET] -s [NUMBER OF SAMPLES] 
+./experiments/sample.sh -d [DATASET] -s [NUMBER OF SAMPLES]
 ```
 
 ### Computing MBR
@@ -34,6 +34,7 @@ The code runs in two steps.
 
 1. Use [sacrebleu](https://github.com/mjpost/sacrebleu) to prepare the benchmark dataset.
 ```
+mkdir -p ./dataset/wmt21
 sacrebleu -t wmt21 -l en-de --echo src > ./dataset/wmt21/wmt21.en-de.en
 sacrebleu -t wmt21 -l en-de --echo ref > ./dataset/wmt21/wmt21.en-de.de
 ```
@@ -62,7 +63,7 @@ sacrebleu -t wmt21 -l en-de --echo ref > ./dataset/wmt21/wmt21.en-de.de
 Bibtex:
 ```
 @article{jinnai2024hyperparameterfree,
-      title={Hyperparameter-Free Approach for Faster Minimum Bayes Risk Decoding}, 
+      title={Hyperparameter-Free Approach for Faster Minimum Bayes Risk Decoding},
       author={Yuu Jinnai and Kaito Ariu},
       year={2024},
       journal={arXiv preprint arXiv:2401.02749}
