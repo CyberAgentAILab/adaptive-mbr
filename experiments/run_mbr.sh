@@ -1,9 +1,9 @@
 # Default parameters are set to run a debug experiment.
 
-DOMAIN=samsum
-MODEL=bart-large-cnn-samsum
+DOMAIN=wmt21.en-de
+MODEL=m2m100_418M
 NLINES=3
-NSAMPLES=5
+NSAMPLES=16
 EPS=0.02
 TOPK=0
 TOPP=1.0

@@ -65,9 +65,6 @@ def pull_arm(
 def compute_ambr(
     hyp=None, score_function=None, matrix=None, weights=None, src=None, T_budget=None
 ):
-    # TODO: Currently the algorithm does not use the fact that
-    #       the score_function is symmetric. This reduces the computation a bit (up to a factor of 2).
-
     if matrix is None:
         # TODO: Make it batched for speed.
         assert False
@@ -147,13 +144,8 @@ def compute_ambr(
             break
         round += 1
 
-    assert T_budget >= nqueries[-1]
-
-    # if T_budget < nqueries[-1]:
-    #     print('Over budget!')
-    #     print('T_budget = {}'.format(T_budget))
-    #     print('nqueries = {}'.format(nqueries[-1]))
-    #     print('summary_pulls = {}'.format(summary_pulls[-1]))
+    if len(nqueries) > 0:
+        assert T_budget >= nqueries[-1]
 
     df = pd.DataFrame(
         {

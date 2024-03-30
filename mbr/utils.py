@@ -91,6 +91,8 @@ def load_model(dataset, torch_device, model_name):
     else:
         assert False
 
+    if model_name == "None":
+        model_name = mname
     return tokenizer, model, model_name, stop_tokens
 
 

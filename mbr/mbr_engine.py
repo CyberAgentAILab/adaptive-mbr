@@ -3,7 +3,6 @@ import json
 import os
 from parser import get_mbr_parser
 
-import boto3
 import numpy as np
 import pandas as pd
 from comet import download_model, load_from_checkpoint
@@ -65,18 +64,8 @@ if __name__ == "__main__":
 
     if args.approx_budgets < 0:
         exact = n_samples * (n_samples - 1)
-        # minimum = int(np.floor(n_samples * np.log(n_samples)))
-        # exact = int(n_samples * (n_samples - 1) / 2)
-        # minimum = int(np.floor(n_samples * np.log(n_samples)))
-        # T_budgets = list(np.arange(minimum, exact, int(n_samples * np.log(n_samples))))
 
-        T_budgets = [exact // n for n in [32, 16, 8, 4, 2]]
-        # for n in range(1, 10):
-        #     bud = exact / (2 ** n)
-        #     if bud >= n_samples * np.log(n_samples):
-        #         T_budgets.append(int(np.floor(bud)))
-        #     else:
-        #         break
+        T_budgets = [exact // n for n in [8, 4, 2]]
     else:
         T_budgets = [args.approx_budgets]
 
@@ -88,9 +77,6 @@ if __name__ == "__main__":
     compute_distance = load_distance(sim, compute_similarity)
     compute_evaluate, evaluator = load_evaluate(eval_func, sim, similarity)
 
-    if algorithm in ["dbs", "diverse", "diversesample"]:
-        compute_pairwise, _ = load_evaluate(pairwise_eval, sim, similarity)
-
     # Load dataset
     src_lines = load_dataset(dataset)  # src is used only by comet and clip.
     trg_lines = load_dataset(dataset, ref=True)
@@ -98,11 +84,12 @@ if __name__ == "__main__":
     model_n = os.path.basename(model_name)
 
     os.makedirs(os.path.join(matrix_dir, dataset, model_n), exist_ok=True)
+    os.makedirs(result_dir, exist_ok=True)
 
     files = sorted(os.listdir(sample_dir))
 
     filtered_files = load_samples_from_file(
-        files, epsilon, topk, topp, do_sample, diverse_k, diversity_penalty
+        files, epsilon, topk, topp, True, 0, 0
     )
 
     assert len(filtered_files) > 0
@@ -116,7 +103,7 @@ if __name__ == "__main__":
     elif algorithm == "c2ff1":
         compute_coarse_sim, _ = load_similarity("unigramf1")
 
-    for filename in filtered_files:
+    for filename in tqdm(filtered_files):
 
         sample_id = int(filename.split("_")[0])
         assert "{:04}".format(sample_id) in filename

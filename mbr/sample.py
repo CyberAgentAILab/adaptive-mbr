@@ -115,14 +115,9 @@ def sample(
                 )
                 rows.append((sample_text, probs[j]))
 
-        if do_sample:
-            filename = "{:04}_eps-{:.2f}_topk-{:02d}_topp-{:.2f}".format(
-                sample_id, eps, topk, topp
-            )
-        else:
-            filename = "{:04}_beam-{:02d}_divpen-{:.2f}".format(
-                sample_id, bsz, diversity_penalty
-            )
+        filename = "{:04}_eps-{:.2f}_topk-{:02d}_topp-{:.2f}".format(
+            sample_id, eps, topk, topp
+        )
 
         outfilepath = os.path.join(sample_dir, dataset, model_n, filename)
 
@@ -147,8 +142,6 @@ if __name__ == "__main__":
     eps = args.eps
     topk = args.topk
     topp = args.topp
-    do_sample = args.do_sample > 0
-    diversity_penalty = args.diversity_penalty
 
     src_lines = load_dataset(dataset)
     tokenizer, model, model_name, stop_tokens = load_model(
