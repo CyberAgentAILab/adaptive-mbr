@@ -18,3 +18,4 @@ google-cloud-storage
 scikit-learn-extra==0.3.0
 torchmetrics==0.10.3
 peft
+git+https://github.com/neural-dialogue-metrics/Distinct-N
