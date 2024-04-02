@@ -2,7 +2,8 @@
 
 This repository contains the code for the experiments in [Hyperparameter-Free Approach for Faster Minimum Bayes Risk Decoding](https://arxiv.org/abs/2401.02749) by Yuu Jinnai and Ariu Kaito.
 
-The code is provided mostly as is with little effort on refactoring.
+The code is tested on Ubuntu 20.04 using Python 3.8 and CUDA 11.0 (Docker image nvidia/cuda:11.0.3-cudnn8-devel-ubuntu20.04).
+The code is provided mostly as is with little effort on refactoring. 
 
 ## Installation
 
