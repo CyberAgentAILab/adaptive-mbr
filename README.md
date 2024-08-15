@@ -1,6 +1,6 @@
 # Adaptive Minimum Bayes Risk Decoding
 
-This repository contains the code for the experiments in [Hyperparameter-Free Approach for Faster Minimum Bayes Risk Decoding](https://arxiv.org/abs/2401.02749) by Yuu Jinnai and Ariu Kaito.
+This repository contains the code for the experiments in [Hyperparameter-Free Approach for Faster Minimum Bayes Risk Decoding](https://aclanthology.org/2024.findings-acl.505/) by Yuu Jinnai and Ariu Kaito.
 
 The code is tested on Ubuntu 20.04 using Python 3.8 and CUDA 11.0 (Docker image nvidia/cuda:11.0.3-cudnn8-devel-ubuntu20.04).
 The code is provided mostly as is with little effort on refactoring. 
@@ -59,15 +59,24 @@ sacrebleu -t wmt21 -l en-de --echo ref > ./dataset/wmt21/wmt21.en-de.de
 
 ## Reference
 
-[Jinnai, Y., & Ariu, K. (2024). Hyperparameter-Free Approach for Faster Minimum Bayes Risk Decoding. arXiv preprint arXiv:2401.02749.](https://arxiv.org/abs/2401.02749)
+[Yuu Jinnai and Kaito Ariu. 2024. Hyperparameter-Free Approach for Faster Minimum Bayes Risk Decoding. In Findings of the Association for Computational Linguistics ACL 2024, pages 8547–8566, Bangkok, Thailand and virtual meeting. Association for Computational Linguistics.](https://aclanthology.org/2024.findings-acl.505/)
 
 Bibtex:
 ```
-@article{jinnai2024hyperparameterfree,
-      title={Hyperparameter-Free Approach for Faster Minimum Bayes Risk Decoding},
-      author={Yuu Jinnai and Kaito Ariu},
-      year={2024},
-      journal={arXiv preprint arXiv:2401.02749}
+@inproceedings{jinnai-ariu-2024-hyperparameter,
+    title = "Hyperparameter-Free Approach for Faster Minimum {B}ayes Risk Decoding",
+    author = "Jinnai, Yuu  and
+      Ariu, Kaito",
+    editor = "Ku, Lun-Wei  and
+      Martins, Andre  and
+      Srikumar, Vivek",
+    booktitle = "Findings of the Association for Computational Linguistics ACL 2024",
+    month = aug,
+    year = "2024",
+    address = "Bangkok, Thailand and virtual meeting",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2024.findings-acl.505",
+    pages = "8547--8566",
 }
 ```
 
